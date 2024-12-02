@@ -28,9 +28,9 @@ export class ApplicationListComponent implements OnInit {
   searchText: string = '';
 
   constructor(private router: Router,
-              private http: HttpClient,
-              private dataService: DataStorageService
-            ) { }
+    private http: HttpClient,
+    private dataService: DataStorageService
+  ) { }
 
   ngOnInit() {
     // this.role = history.state.role;
@@ -43,27 +43,48 @@ export class ApplicationListComponent implements OnInit {
     this.fields = ROLE_FIELDS_MAP[this.role];
   }
 
-  fetchApplicationList(userId: string){
+  fetchApplicationList(userId: string) {
+    //filters, sort should come from ui
+    const filters = [
+      {
+        columnName: "userId",
+        value: userId,
+        type: "EQUALS"
+      }
+    ];
+    const sort = [
+      {
+        sortField: "crDTimes",
+        sortType: "DESC"
+      }
+    ];
+    const pagination = {
+      pageStart: 0,
+      pageFetch: 10
+    };
     this.dataService
-              .fetchApplicationList(userId)
-              .subscribe(
-                (appResponse: any) => {
-                  console.log("Application List Response:", appResponse);
-                  if (appResponse && appResponse.response) {
-                    // const role = 'MVS_OFFICER';
-                    // const role = 'MVS_SUPERVISOR';
-                    const role = 'MVS_DISTRICT_OFFICER';
-                    // const role = 'MVS_LEGAL_OFFICER';
-                    //role also should come from api
-                    const data = ROLE_DATA_MAP[role];
-                    
-                  }
-                } ,
-                (appError) => {
-                  console.error("Error fetching application list:", appError);
-                }
-              );
+      .fetchApplicationList(userId, filters, sort, pagination)
+      .subscribe(
+        (appResponse: any) => {
+          console.log("Application List Response:", appResponse);
+          if (appResponse && appResponse.response && appResponse.response.data) {
+            const applicationData = appResponse.response.data;
 
+            // Process the response data and show in the ui table
+            applicationData.forEach((application: any) => {
+              console.log("Application ID:", application.applicationId);
+              console.log("Service:", application.service);
+              console.log("Status:", application.status);
+            });
+
+          } else if (appResponse.errors && appResponse.errors.length) {
+            console.error("API Errors:", appResponse.errors);
+          }
+        },
+        (appError) => {
+          console.error("Error fetching application list:", appError);
+        }
+      );
   }
 
 
@@ -83,12 +104,12 @@ export class ApplicationListComponent implements OnInit {
       .getApplicationDetails(applicationId)
       .subscribe(
         (response: any) => {
-        // Navigate to the details page with fetched data
-        this.router.navigate(['/application-detail'], { state: { role: this.role, data: response.response } });
-      },
-      (error) => {
-        console.error('Error fetching application details:', error);
-        alert('Failed to fetch application details.');
-      });
-      }
+          // Navigate to the details page with fetched data
+          this.router.navigate(['/application-detail'], { state: { role: this.role, data: response.response } });
+        },
+        (error) => {
+          console.error('Error fetching application details:', error);
+          alert('Failed to fetch application details.');
+        });
+  }
 }

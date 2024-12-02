@@ -1,4 +1,4 @@
 {
     "BASE_URL": "https://api-internal.niradev.idencode.link/",
-    "PRE_REG_URL": "/v1/manual-verification-service"
+    "MVS_URL": "/v1/manual-verification-service"
 }
